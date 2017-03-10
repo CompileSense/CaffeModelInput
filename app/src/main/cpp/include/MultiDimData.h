@@ -30,6 +30,14 @@ public:
         delete[] data_ptr;
     }
 
+    size_t totalSize(){
+        int num = 1;
+        for (int i = 0; i < num_dimensions; ++i){
+            num *= shape[i];
+        }
+        return (size_t)num;
+    }
+
     size_t get_n(){
         return  (num_dimensions < 4) ? 0 : shape[3];
     }
@@ -43,22 +51,5 @@ public:
         return  (num_dimensions < 1) ? 0 : shape[0];
     }
 };
-
-//template <typename DataType>
-//size_t MultiDimData<DataType>::get_n(){
-//    return  (num_dimensions < 4) ? 0 : shape[3];
-//}
-//
-//size_t MultiDimData::get_c(){
-//    return  (num_dimensions < 3) ? 0 : shape[2];
-//}
-//template <typename DataType>
-//size_t MultiDimData<DataType>::get_h(){
-//    return  (num_dimensions < 2) ? 0 : shape[1];
-//}
-//template <typename DataType>
-//size_t MultiDimData<DataType>::get_w(){
-//    return  (num_dimensions < 1) ? 0 : shape[0];
-//}
 
 #endif //CAFFEMODELINPUT_MULTIDIMDATA_H

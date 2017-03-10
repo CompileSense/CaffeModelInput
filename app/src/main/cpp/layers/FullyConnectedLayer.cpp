@@ -2,8 +2,8 @@
 // Created by 神经元002 on 2017/3/7.
 //
 
-#include "include/FullyConnectedLayer.h"
-#include "include/utils.h"
+#include "FullyConnectedLayer.h"
+#include "utils.h"
 FullyConnectedLayer::FullyConnectedLayer(
         const std::string &name, bool nonLinear) : name(name), nonLinear(nonLinear) {
     this->paramHadLoad = false;
@@ -23,7 +23,7 @@ void FullyConnectedLayer::setParam(jfloatArray weightJArray, float* weight, int 
     this->biasSize = biasSize;
 
     this->paramHadLoad = true;
-    LOGD("ConvolutionLayer setParam! name: %s",this->name.data());
+    LOGD("ConvolutionLayer setKernel! name: %s",this->name.data());
 }
 
 void FullyConnectedLayer::releaseParam(JNIEnv *env) {

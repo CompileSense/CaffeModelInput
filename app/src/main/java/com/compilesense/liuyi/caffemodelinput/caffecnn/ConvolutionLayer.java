@@ -76,7 +76,7 @@ public class ConvolutionLayer implements Layer {
         Log.d(TAG,"--------------------------------------------");
 
 
-//        setParam(this.nativeObject, weight, weightShape, bias);
+//        setKernel(this.nativeObject, weight, weightShape, bias);
         setParam1DimenWeight(this.nativeObject, float4DArrayTo1D(weight, weightShape), weightShape, bias);
         paramHasLoad = true;
         return this;

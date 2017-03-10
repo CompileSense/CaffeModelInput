@@ -18,13 +18,18 @@ int convNnpack(
         unsigned int kernelSize_h, unsigned int kernelSize_w
 );
 
-ConvolutionLayer::ConvolutionLayer(const std::string &name,
-                                   unsigned int strideSize, unsigned int *stride,
-                                   unsigned int padSize, unsigned int *pad, int group, bool nonLinear)
-        : name(name), strideSize(strideSize),
-          stride(stride), padSize(padSize), pad(pad),
-          group(group), nonLinear(nonLinear),
-          paramHadLoad(false){
+ConvolutionLayer::ConvolutionLayer(const std::string &name, unsigned int stride, unsigned int pad, int group, bool nonLinear)
+        : name(name), nonLinear(nonLinear), paramHadLoad(false){
+    params.setParams(pad, stride, 1, 1);
+
+    this->weightSize = 0;
+    this->biasSize=0;
+    this->weight=NULL;
+    this->bias=NULL;
+    this->weightShape=NULL;
+}
+ConvolutionLayer::ConvolutionLayer(const std::string &name, ConvolutionLayer::Params params,bool nonLinear)
+        : name(name), params(params), nonLinear(nonLinear),paramHadLoad(false){
     this->weightSize = 0;
     this->biasSize=0;
     this->weight=NULL;
@@ -32,14 +37,13 @@ ConvolutionLayer::ConvolutionLayer(const std::string &name,
     this->weightShape=NULL;
 }
 
-ConvolutionLayer::~ConvolutionLayer(){
-    delete stride;
-    delete pad;
+ConvolutionLayer::~ConvolutionLayer() {
+    LOGD("ConvolutionLayer delete!");
 }
 
-void ConvolutionLayer::setParam(float* weight, int weightSize,
-                                int* weightShape, int weightShapeLength,
-                                float* bias, int biasSize){
+void ConvolutionLayer::setKernel(float *weight, int weightSize,
+                                 int *weightShape, int weightShapeLength,
+                                 float *bias, int biasSize){
     this->weight = weight;
     this->bias = bias;
     this->weightSize = weightSize;
@@ -47,20 +51,19 @@ void ConvolutionLayer::setParam(float* weight, int weightSize,
     this->weightShape = weightShape;
     this->weightShapeLength = weightShapeLength;
 
-
     this->paramHadLoad = true;
-//    LOGD("ConvolutionLayer setParam! name: %s", this->name.data());
-//    LOGD("ConvolutionLayer setParam! weightSize: %i , last data:%f", weightSize, weight[weightSize - 1]);
-//    LOGD("ConvolutionLayer setParam! biasSize: %i , last data:%f", biasSize, bias[biasSize - 1]);
+//    LOGD("ConvolutionLayer setKernel! name: %s", this->name.data());
+//    LOGD("ConvolutionLayer setKernel! weightSize: %i , last data:%f", weightSize, weight[weightSize - 1]);
+//    LOGD("ConvolutionLayer setKernel! biasSize: %i , last data:%f", biasSize, bias[biasSize - 1]);
 }
 
-void ConvolutionLayer::releaseParams() {
+void ConvolutionLayer::releaseKernel() {
 
-//    LOGD("ConvolutionLayer releaseParams! name: %s", this->name.data());
-//    LOGD("ConvolutionLayer setParam! paramHadLoad:%i",paramHadLoad);
-//    LOGD("ConvolutionLayer setParam! weightSize: %i , last data:%f, prt: %p", weightSize, weight[weightSize - 1], weight);
-//    LOGD("ConvolutionLayer setParam! biasSize: %i , last data:%f, prt: %p", biasSize, bias[biasSize -1], bias);
-//    LOGD("ConvolutionLayer setParam! weightShape: %i , last data:%i, prt: %p", weightShapeLength, weightShape[weightShapeLength -1], weightShape);
+//    LOGD("ConvolutionLayer releaseKernel! name: %s", this->name.data());
+//    LOGD("ConvolutionLayer setKernel! paramHadLoad:%i",paramHadLoad);
+//    LOGD("ConvolutionLayer setKernel! weightSize: %i , last data:%f, prt: %p", weightSize, weight[weightSize - 1], weight);
+//    LOGD("ConvolutionLayer setKernel! biasSize: %i , last data:%f, prt: %p", biasSize, bias[biasSize -1], bias);
+//    LOGD("ConvolutionLayer setKernel! weightShape: %i , last data:%i, prt: %p", weightShapeLength, weightShape[weightShapeLength -1], weightShape);
     if (this->paramHadLoad){
         try {
             if (this->weight != NULL){
@@ -73,7 +76,7 @@ void ConvolutionLayer::releaseParams() {
                 delete[] bias;
             }
         }catch (std::exception exception){
-            LOGE("releaseParams failed! file:%s, line:%i, info:%s", __FILE__, __LINE__, exception.what() );
+            LOGE("releaseKernel failed! file:%s, line:%i, info:%s", __FILE__, __LINE__, exception.what() );
         }
     }
     this->paramHadLoad = false;
@@ -84,9 +87,9 @@ void ConvolutionLayer::releaseParams() {
  */
 void ConvolutionLayer::compute(float * input, std::vector<unsigned  int> inputShape, float * output){
 
-    unsigned int pad_ = (unsigned int) max(pad[1], 0);
-    int stride_h = stride[0];
-    int stride_w = stride[1];
+    unsigned int pad_ = (unsigned int) params.pad;
+    int stride_h = params.stride_h;
+    int stride_w = params.stride_w;
 
     //input
     unsigned int n_i = inputShape[0];//数量
@@ -233,10 +236,10 @@ Java_com_compilesense_liuyi_caffemodelinput_caffecnn_ConvolutionLayer_createConv
     int group = group_;
     //nonLinear
     bool nonLinear = nonLinear_;
-    ConvolutionLayer * convLayerPrt = new ConvolutionLayer(
+    ConvolutionLayer * convLayerPrt =  new ConvolutionLayer(
             name,
-            (unsigned) strideSize, (unsigned int *) stride,
-            (unsigned) padSize, (unsigned int *) pad,
+            (unsigned int)stride[0],
+            (unsigned int)pad[0],
             group,
             nonLinear
     );
@@ -252,7 +255,7 @@ Java_com_compilesense_liuyi_caffemodelinput_caffecnn_ConvolutionLayer_deleteConv
         jlong objectPrt_
 ){
     ConvolutionLayer *objectPrt = (ConvolutionLayer *) objectPrt_;
-    objectPrt->releaseParams();
+    objectPrt->releaseKernel();
     delete(objectPrt);
 }
 
@@ -282,7 +285,7 @@ Java_com_compilesense_liuyi_caffemodelinput_caffecnn_ConvolutionLayer_setParam(
     int biasArrayLength = 0;
     float* bias = jFloatArray2prt(env, bias_, &biasArrayLength);
 
-//    objectPrt -> setParam(weight_, weight, weightArrayLength,
+//    objectPrt -> setKernel(weight_, weight, weightArrayLength,
 //                          weightShape, weightArrayLength,
 //                          bias_, bias, biasArrayLength);
 }
@@ -307,9 +310,9 @@ Java_com_compilesense_liuyi_caffemodelinput_caffecnn_ConvolutionLayer_setParam1D
     int biasArrayLength = 0;
     float* bias = jFloatArray2prtFast(env, bias_, &biasArrayLength);
 
-    objectPrt -> setParam(weight, weightArrayLength,
-                          weightShape, weightShapeLength,
-                          bias, biasArrayLength);
+    objectPrt->setKernel(weight, weightArrayLength,
+                         weightShape, weightShapeLength,
+                         bias, biasArrayLength);
 
     jFloatArrayRelease(env, weight_, weight);
     jFloatArrayRelease(env, bias_, bias);
@@ -321,25 +324,22 @@ Java_com_compilesense_liuyi_caffemodelinput_caffecnn_ConvolutionLayer_testConvol
         JNIEnv *env, jobject instance
 ){
     LOGD("init test");
-    unsigned int stride[2] = {1,1};
-    unsigned int pad[2] = {0,0};
-    ConvolutionLayer * convLayerPrt = new ConvolutionLayer(
-            "testConvLayer",
-            2, stride,
-            2, pad,
-            0,
-            false
-    );
+    unsigned int stride = 1;
+    unsigned int pad = 0;
+
+    ConvolutionLayer::Params params(pad,stride);
+    ConvolutionLayer convolutionLayer("testConvolutionLayer",
+            params, false);
+
     float kernel[3*3] = {1,2,3,
                          4,5,6,
                          7,8,9};
     int kernelShape[4] = {1,1,3,3};
     float bias[1] = {0};
-    LOGD("setParam test");
-    convLayerPrt->setParam(kernel, 9,
-                           kernelShape, 4,
-                           bias, 1);
-
+    LOGD("setKernel test");
+    convolutionLayer.setKernel(kernel, 9,
+                            kernelShape, 4,
+                            bias, 1);
     float input[5*5] =
             {1,2,3,4,5,
              1,2,3,4,5,
@@ -353,8 +353,7 @@ Java_com_compilesense_liuyi_caffemodelinput_caffecnn_ConvolutionLayer_testConvol
     inputShape[3] = 5;
     float output[9];
     LOGD("compute test");
-    convLayerPrt->compute(input, inputShape, output);
-
+    convolutionLayer.compute(input, inputShape, output);
     for (int i = 0; i < 9; ++i) {
         LOGD("result:%f",output[i]);
     }

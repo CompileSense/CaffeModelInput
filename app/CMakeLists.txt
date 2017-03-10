@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 3.4.1)
 
 
 aux_source_directory(./src/main/cpp DIR_SRCS)
+aux_source_directory(./src/main/cpp/layers DIR_SRCS_LAYERS)
 aux_source_directory(./src/main/cpp/test DIR_TEST)
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -22,6 +23,7 @@ add_library( # Sets the name of the library.
              # Associated headers in the same location as their source
              # file are automatically included.
              ${DIR_SRCS}
+             ${DIR_SRCS_LAYERS}
              ${DIR_TEST})
 
 include_directories(src/main/cpp/include)

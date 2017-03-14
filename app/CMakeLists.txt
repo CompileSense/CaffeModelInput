@@ -8,10 +8,15 @@ cmake_minimum_required(VERSION 3.4.1)
 aux_source_directory(./src/main/cpp DIR_SRCS)
 aux_source_directory(./src/main/cpp/layers DIR_SRCS_LAYERS)
 aux_source_directory(./src/main/cpp/test DIR_TEST)
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds it for you.
 # Gradle automatically packages shared libraries with your APK.
+
+
+
+# ADD_SUBDIRECTORY( ./src/main/cpp/neonmath )
 
 add_library( # Sets the name of the library.
              native-lib
@@ -22,21 +27,25 @@ add_library( # Sets the name of the library.
              # Provides a relative path to your source file(s).
              # Associated headers in the same location as their source
              # file are automatically included.
+
              ${DIR_SRCS}
              ${DIR_SRCS_LAYERS}
              ${DIR_TEST})
 
 include_directories(src/main/cpp/include)
 
+# NE10
+# include_directories(/Users/shenjingyuan002/work/neo/Ne10-master/inc)
+
 # NNPACK
-include_directories(
-    /Users/shenjingyuan002/work/SDK/NNPACK/deps/pthreadpool/include
-    /Users/shenjingyuan002/work/SDK/NNPACK/deps/fxdiv/include
-    /Users/shenjingyuan002/work/SDK/NNPACK/deps/psimd/include
-    /Users/shenjingyuan002/work/SDK/NNPACK/deps/fp16/include
-    /Users/shenjingyuan002/work/SDK/NNPACK/deps/googlebenchmark/include
-)
-include_directories(/Users/shenjingyuan002/work/SDK/NNPACK/include)
+# include_directories(
+#     /Users/shenjingyuan002/work/SDK/NNPACK/deps/pthreadpool/include
+#     /Users/shenjingyuan002/work/SDK/NNPACK/deps/fxdiv/include
+#     /Users/shenjingyuan002/work/SDK/NNPACK/deps/psimd/include
+#     /Users/shenjingyuan002/work/SDK/NNPACK/deps/fp16/include
+#     /Users/shenjingyuan002/work/SDK/NNPACK/deps/googlebenchmark/include
+# )
+# include_directories(/Users/shenjingyuan002/work/SDK/NNPACK/include)
 
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -62,8 +71,9 @@ target_link_libraries( # Specifies the target library.
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib}
-                       /Users/shenjingyuan002/work/app-repo-android/CaffeModelInput/app/src/main/JniLibs/libnnpack.a
-                       /Users/shenjingyuan002/work/app-repo-android/CaffeModelInput/app/src/main/JniLibs/libnnpack_reference.a
-                       /Users/shenjingyuan002/work/app-repo-android/CaffeModelInput/app/src/main/JniLibs/libnnpack_ukernels.a
-                       /Users/shenjingyuan002/work/app-repo-android/CaffeModelInput/app/src/main/JniLibs/libpthreadpool.a
+                       # /Users/shenjingyuan002/work/app-repo-android/CaffeModelInput/app/src/main/JniLibs/libNE10.a
+                      # /Users/shenjingyuan002/work/app-repo-android/CaffeModelInput/app/src/main/JniLibs/libnnpack.a
+                      # /Users/shenjingyuan002/work/app-repo-android/CaffeModelInput/app/src/main/JniLibs/libnnpack_reference.a
+                      # /Users/shenjingyuan002/work/app-repo-android/CaffeModelInput/app/src/main/JniLibs/libnnpack_ukernels.a
+                      # /Users/shenjingyuan002/work/app-repo-android/CaffeModelInput/app/src/main/JniLibs/libpthreadpool.a
                       )

@@ -8,6 +8,7 @@
 #include <vector>
 #include <cwchar>
 #include <memory>
+#include <math.h>
 
 /**
  * 在网络中的数据大多是多维的,如果用一维数组表示,那么 Shape 这个数据就是形影不离的。

@@ -3,6 +3,64 @@
 //
 #include "ComputeTool.h"
 #include <arm_neon.h>
+#include "math.h"
+//const float __tanf_rng[2] = {
+//        2.0 / M_PI,
+//        M_PI / 2.0
+//};
+//
+//const float __tanf_lut[4] = {
+//        -0.00018365f,	//p7
+//        -0.16664831f,	//p3
+//        +0.00830636f,	//p5
+//        +0.99999661f,	//p1
+//};
+//
+//float tanf_c(float x){
+//
+//    union {
+//        float f;
+//        int i;
+//    } ax, c;
+//
+//    float r, a, b, xx, cc, cx;
+//    int m;
+//
+//    ax.f = fabsf(x);
+//
+//    //Range Reduction:
+//    m = (int) (ax.f * __tanf_rng[0]);
+//    ax.f = ax.f - (((float)m) * __tanf_rng[1]);
+//
+//    //Test Quadrant
+//    ax.f = ax.f - (m & 1) * __tanf_rng[1];
+//    ax.i = ax.i ^ ((*(int*)&x) & 0x80000000);
+//
+//    //Taylor Polynomial (Estrins)
+//    xx = ax.f * ax.f;
+//    a = (__tanf_lut[0] * ax.f) * xx + (__tanf_lut[2] * ax.f);
+//    b = (__tanf_lut[1] * ax.f) * xx + (__tanf_lut[3] * ax.f);
+//    xx = xx * xx;
+//    r = b + a * xx;
+//
+//    //cosine
+//    c.f = 1.0 - r * r;
+//
+//    //fast invsqrt approximation (2x newton iterations)
+//    cc = c.f;
+//    c.i = 0x5F3759DF - (c.i >> 1);		//VRSQRTE
+//    cx = cc * c.f;
+//    a = (3.0f - cx * c.f) / 2;			//VRSQRTS
+//    c.f = c.f * a;
+//    cx = cc * c.f;
+//    a = (3.0f - cx * c.f) / 2;
+//    c.f = c.f * a;
+//
+//    r = r * c.f;
+//
+//    return r;
+//}
+
 
 bool is_a_ge_zero_and_a_lt_b(int a, int b) {
     return static_cast<unsigned>(a) < static_cast<unsigned>(b);
@@ -117,3 +175,83 @@ void relu(MultiDimData<float> *input){
         index++;
     }
 }
+
+//ai = 0.25
+void prelu(MultiDimData<float> *input){
+    const float P = 0.25f;
+
+    if(input == NULL || input->data_ptr == NULL){
+        return;
+    }
+    int num = (int) input->totalSize();
+    //一个向量寄存器可128位装4个32位 float。共有16个
+    const int numVector = num / 4;
+    int left = num % 4;
+    int batchIndex = numVector;
+    int index = 0;
+
+    float * data = input->data_ptr;
+    while(batchIndex > 0){
+        batchIndex--;
+        float32x4_t vector = vld1q_f32(data + index);//v
+        float32x4_t vectorAbs = vabsq_f32(vector);//|v|
+        float32x4_t vectorSub = vsubq_f32(vector, vectorAbs);// v - |v|
+        float32x4_t vectorTemp1 = vmulq_n_f32(vectorSub, P * 0.5f);//(v - |v|) * 0.5 * ai
+        float32x4_t vectorAdd = vaddq_f32(vector, vectorAbs);// v + |v|
+        float32x4_t vectorTemp2 = vmulq_n_f32(vectorAdd, 0.5f);
+        float32x4_t result = vaddq_f32(vectorTemp1, vectorTemp2);
+        vst1q_f32(data + index, result);
+        index += 4;
+    }
+
+    while(left > 0){
+        left--;
+        float temp = data[index];
+        data[index] = (temp > 0) ? temp : temp * P;
+        index++;
+    }
+}
+
+void tanh(MultiDimData<float> *input){
+#ifdef __arm__
+    if(input == NULL || input->data_ptr == NULL){
+        return;
+    }
+    int num = (int) input->totalSize();
+    float * data = input->data_ptr;
+    for (int i = 0; i < num; ++i) {
+        data[i] = tanhf(data[i]);
+    }
+#endif
+
+
+}
+
+void abs(MultiDimData<float> *input){
+    if(input == NULL || input->data_ptr == NULL){
+        return;
+    }
+    int num = (int) input->totalSize();
+    //一个向量寄存器可128位装4个32位 float。共有16个
+    const int numVector = num / 4;
+    int left = num % 4;
+    int batchIndex = numVector;
+    int index = 0;
+
+    float * data = input->data_ptr;
+    while(batchIndex > 0){
+        batchIndex--;
+        float32x4_t vector1 = vld1q_f32(data + index);
+        float32x4_t result = vabsq_f32(vector1);
+        vst1q_f32(data + index, result);
+        index += 4;
+    }
+
+    while(left > 0){
+        left--;
+        float temp = data[index];
+        data[index] = fabsf(temp);
+        index++;
+    }
+}
+

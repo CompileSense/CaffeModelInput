@@ -7,16 +7,16 @@
 #include "utils.h"
 #include "ConvolutionLayer.h"
 #include <math.h>
-#include <nnpack.h>
+//#include <nnpack.h>
 
-bool initNnpack();
-void releaseNnpack();
-int convNnpack(
-        float * output, float * input, float * kernel, float * bias,
-        size_t batch_size,size_t input_channels, size_t output_channels,
-        unsigned int pad, unsigned int inputSize_h, unsigned int inputSize_w,
-        unsigned int kernelSize_h, unsigned int kernelSize_w
-);
+//bool initNnpack();
+//void releaseNnpack();
+//int convNnpack(
+//        float * output, float * input, float * kernel, float * bias,
+//        size_t batch_size,size_t input_channels, size_t output_channels,
+//        unsigned int pad, unsigned int inputSize_h, unsigned int inputSize_w,
+//        unsigned int kernelSize_h, unsigned int kernelSize_w
+//);
 
 ConvolutionLayer::ConvolutionLayer(const std::string &name, unsigned int stride, unsigned int pad, int group, bool nonLinear)
         : name(name), nonLinear(nonLinear), paramHadLoad(false){
@@ -117,15 +117,15 @@ void ConvolutionLayer::compute(float * input, std::vector<unsigned  int> inputSh
         w_i = w_i/stride_w;
     }
 
-    if (!initNnpack()){
-        return;
-    }
-
-    convNnpack(output, input, weight, bias,
-                n_i, c_i, c_o, pad_, h_i, w_i, h_k, w_k
-    );
-
-    releaseNnpack();
+//    if (!initNnpack()){
+//        return;
+//    }
+//
+//    convNnpack(output, input, weight, bias,
+//                n_i, c_i, c_o, pad_, h_i, w_i, h_k, w_k
+//    );
+//
+//    releaseNnpack();
 }
 
 
@@ -139,76 +139,76 @@ void computeOutputShape(int* inputShape, int* kernelShape, int* strideData, int*
     }
 }
 
-bool initNnpack(){
-    //初始化 nnpack;
-    nnp_status s = nnp_initialize();
-    if (s != nnp_status_success){
-        LOGD("nnpack init failed:%i", s);
-        return false;
-    } else{
-        return true;
-    }
-}
-
-void releaseNnpack(){
-    nnp_status s = nnp_deinitialize();
-    if (s != nnp_status_success){
-        LOGE("nnpack release failed:%i", s);
-    }
-}
-
-/**
- * 使用nnpack来计算卷积
- * @param[out] output: 输出数据 4D。
- * @param[in]  input: 输入数据 4D。
- * @param[in]  kernel: weight 数据 4D。
- * @param[in]  bias: bias 数据 1D。
- */
-int convNnpack(
-        float * output, float * input, float * kernel, float * bias,
-        size_t batch_size, size_t input_channels, size_t output_channels,
-        unsigned int pad, unsigned int inputSize_h, unsigned int inputSize_w,
-        unsigned int kernelSize_h, unsigned int kernelSize_w
-){
-    enum nnp_convolution_algorithm algorithm = nnp_convolution_algorithm_auto;//卷积算法
-
-//    batch_size = 1;//TODO 弄清作用
-    const struct nnp_padding input_padding = {pad, pad, pad, pad};
-    const struct nnp_size input_size ={ inputSize_h, inputSize_w };
-    const struct nnp_size kernel_size = { kernelSize_h, kernelSize_w };
-    const struct nnp_size output_size = {
-            .width = (input_padding.left + input_size.width + input_padding.right - kernel_size.width) + 1,
-            .height = (input_padding.top + input_size.height + input_padding.bottom - kernel_size.height) + 1
-    };
-
-//    if (output ==NULL){
-//        output = (float*)malloc(batch_size* output_channels * output_size.height * output_size.width * sizeof(float));
+//bool initNnpack(){
+//    //初始化 nnpack;
+//    nnp_status s = nnp_initialize();
+//    if (s != nnp_status_success){
+//        LOGD("nnpack init failed:%i", s);
+//        return false;
+//    } else{
+//        return true;
 //    }
-
-    pthreadpool_t threadpool=NULL; //pthreadpool_create(4);
-
-//    LOGD("intput: ****************************");
-//    for (int i = 0; i < batch_size; i++){
-//        for (int j = 0; j < input_channels; j++){
-//            for (int k = 0; i < inputSize_h; i++){
+//}
 //
-//            }
-//        }
+//void releaseNnpack(){
+//    nnp_status s = nnp_deinitialize();
+//    if (s != nnp_status_success){
+//        LOGE("nnpack release failed:%i", s);
 //    }
+//}
 //
-//    LOGD("intput: ****************************");
-    nnp_convolution_output(
-            algorithm,
-            batch_size, input_channels, output_channels,
-            input_size, input_padding, kernel_size,
-            input, kernel, bias, output,
-            nnp_activation_relu,//f(x) = max(x,0)
-            NULL,
-            threadpool,
-//            &computation_profile
-            NULL);
-    return 0;
-}
+///**
+// * 使用nnpack来计算卷积
+// * @param[out] output: 输出数据 4D。
+// * @param[in]  input: 输入数据 4D。
+// * @param[in]  kernel: weight 数据 4D。
+// * @param[in]  bias: bias 数据 1D。
+// */
+//int convNnpack(
+//        float * output, float * input, float * kernel, float * bias,
+//        size_t batch_size, size_t input_channels, size_t output_channels,
+//        unsigned int pad, unsigned int inputSize_h, unsigned int inputSize_w,
+//        unsigned int kernelSize_h, unsigned int kernelSize_w
+//){
+//    enum nnp_convolution_algorithm algorithm = nnp_convolution_algorithm_auto;//卷积算法
+//
+////    batch_size = 1;//TODO 弄清作用
+//    const struct nnp_padding input_padding = {pad, pad, pad, pad};
+//    const struct nnp_size input_size ={ inputSize_h, inputSize_w };
+//    const struct nnp_size kernel_size = { kernelSize_h, kernelSize_w };
+//    const struct nnp_size output_size = {
+//            .width = (input_padding.left + input_size.width + input_padding.right - kernel_size.width) + 1,
+//            .height = (input_padding.top + input_size.height + input_padding.bottom - kernel_size.height) + 1
+//    };
+//
+////    if (output ==NULL){
+////        output = (float*)malloc(batch_size* output_channels * output_size.height * output_size.width * sizeof(float));
+////    }
+//
+//    pthreadpool_t threadpool=NULL; //pthreadpool_create(4);
+//
+////    LOGD("intput: ****************************");
+////    for (int i = 0; i < batch_size; i++){
+////        for (int j = 0; j < input_channels; j++){
+////            for (int k = 0; i < inputSize_h; i++){
+////
+////            }
+////        }
+////    }
+////
+////    LOGD("intput: ****************************");
+//    nnp_convolution_output(
+//            algorithm,
+//            batch_size, input_channels, output_channels,
+//            input_size, input_padding, kernel_size,
+//            input, kernel, bias, output,
+//            nnp_activation_relu,//f(x) = max(x,0)
+//            NULL,
+//            threadpool,
+////            &computation_profile
+//            NULL);
+//    return 0;
+//}
 
 #ifdef __cplusplus
 extern "C" {

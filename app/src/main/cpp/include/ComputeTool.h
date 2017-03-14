@@ -18,5 +18,8 @@ MultiDimData<float > * im2col(
         ConvolutionLayer::Params cp);
 
 void relu(MultiDimData<float> *input);
+void prelu(MultiDimData<float> *input);
+void tanh(MultiDimData<float> *input);
+void abs(MultiDimData<float> *input);
 
 #endif //CAFFEMODELINPUT_COMPUTETOOL_H

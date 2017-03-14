@@ -48,8 +48,13 @@ public class MainActivity extends AppCompatActivity {
 //                ConvolutionLayer.testCompult();
 
 //                NativeTest.testComputeIm2Col();
+//                NativeTest.testComputeRelu();
+//
+//                NativeTest.testComputePrelu();
+//                NativeTest.testComputeTanh();
+//                stringFromJNI();
 
-                NativeTest.testComputeRelu();
+                NativeTest.testMathExp();
             }
         });
 

@@ -8,11 +8,22 @@
 ActivationLayer::ActivationLayer(const std::string name, Type type_)
         : name(name), type(type_)
 {
-
+    LOGD("ActivationLayer create. name: %s", name.data());
 }
 
 void ActivationLayer::compute(MultiDimData<float> *input) {
-    if (type == ReLU){
-        relu(input);
+    switch (type){
+        case ReLU:
+            relu(input);
+            break;
+        case PReLU:
+            prelu(input);
+            break;
+        case TanH:
+            tanh(input);
+            break;
+        case Abs:
+            abs(input);
+            break;
     }
 }

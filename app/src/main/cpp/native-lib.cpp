@@ -4,6 +4,7 @@
 #include "include/utils.h"
 #include <memory>
 
+
 extern "C"
 jstring
 Java_com_compilesense_liuyi_caffemodelinput_MainActivity_stringFromJNI(
